@@ -6,7 +6,7 @@ use Exception;
 use Elasticsearch\ClientBuilder;
 use Laravel\Scout\EngineManager;
 use Illuminate\Support\ServiceProvider;
-use Tamayo\LaravelScoutElastic\Engines\ElasticsearchEngine;
+use Tbryan24\LaravelScoutElastic\Engines\ElasticsearchEngine;
 
 class ElasticScoutProvider extends ServiceProvider
 {
@@ -17,13 +17,16 @@ class ElasticScoutProvider extends ServiceProvider
     {
         $this->ensureElasticClientIsInstalled();
 
-        resolve(EngineManager::class)->extend('elasticsearch', function () {
-            return new ElasticsearchEngine(
-                ClientBuilder::create()
-                    ->setHosts(config('scout.elasticsearch.hosts'))
-                    ->build()
-            );
-        });
+        resolve(EngineManager::class)->extend(
+            'elasticsearch',
+            function () {
+                return new ElasticsearchEngine(
+                    ClientBuilder::create()
+                        ->setHosts(config('scout.elasticsearch.hosts'))
+                        ->build()
+                );
+            }
+        );
     }
 
     /**
