@@ -32,5 +32,12 @@
   "suggest": {
     "elasticsearch/elasticsearch": "Required to use the Elasticsearch engine (^7.9.0)."
   },
+  "extra": {
+    "laravel": {
+      "providers": [
+        "Tbryan24\\LaravelScoutElastic\\ElasticScoutProvider"
+      ]
+    }
+  },
   "minimum-stability": "stable"
 }
