@@ -1,0 +1,36 @@
+{
+  "name": "tbryan24/laravel-scout-elastic",
+  "description": "The scout driver of elasticsearch with ik and pinyin",
+  "type": "library",
+  "license": "MIT",
+  "autoload": {
+    "psr-4": {
+      "Tbryan24\\LaravelScoutElastic\\": "src/"
+    }
+  },
+  "authors": [
+    {
+      "name": "tbryan24",
+      "email": "wcffgkobe@163.com"
+    }
+  ],
+  "keywords": [
+    "laravel",
+    "scout",
+    "elasticsearch",
+    "elastic"
+  ],
+  "require": {
+    "php": "^7.2|^8.0|^8.1",
+    "laravel/scout": "^9.3"
+  },
+  "require-dev": {
+    "elasticsearch/elasticsearch": "^7.9",
+    "mockery/mockery": "^1.0",
+    "phpunit/phpunit": "^8.0|^9.3"
+  },
+  "suggest": {
+    "elasticsearch/elasticsearch": "Required to use the Elasticsearch engine (^7.9.0)."
+  },
+  "minimum-stability": "stable"
+}
