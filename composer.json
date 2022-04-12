@@ -35,7 +35,7 @@
   "extra": {
     "laravel": {
       "providers": [
-        "Tbryan24\\LaravelScoutElastic\\Providers\\ElasticScoutProvider"
+        "Tbryan24\\LaravelScoutElastic\\ElasticScoutProvider"
       ]
     }
   },
