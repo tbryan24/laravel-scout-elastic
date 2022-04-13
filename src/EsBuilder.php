@@ -42,7 +42,7 @@ class EsBuilder extends Builder
         try {
             $this->analyze = [
                 "text" => $text,
-                "analyzer" => "ik_smart"
+                "analyzer" => $analyzer
             ];
         } catch (\Exception $exception) {
             throw new \Exception($exception->getMessage());
