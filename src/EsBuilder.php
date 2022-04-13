@@ -9,7 +9,7 @@ class EsBuilder extends Builder
 {
     public $analyze;
 
-    public $suggest=[];
+    public $suggest = [];
 
     public function __construct($model, $query, $callback = null, $softDelete = false, $analyze = null)
     {
@@ -23,9 +23,32 @@ class EsBuilder extends Builder
      * DataTime: 2022/4/12 17:29
      * @return mixed
      */
-    public function esAnalyze()
+    public function getTokens()
     {
-        return $this->engine()->analyze($this);
+        return $this->engine()->getTokens($this);
+    }
+
+    /**
+     * Notes: 分词解析器
+     * Author: wangchengfei
+     * DataTime: 2022/4/13 16:25
+     * @param string $text
+     * @param string $analyzer ik_max_word or ik_smart
+     * @return $this
+     * @throws \Exception
+     */
+    public function analyze($text='',$analyzer='ik_smart')
+    {
+        try {
+            $this->analyze = [
+                "text" => $text,
+                "analyzer" => "ik_smart"
+            ];
+        } catch (\Exception $exception) {
+            throw new \Exception($exception->getMessage());
+        }
+
+        return $this;
     }
 
     /**
@@ -38,11 +61,11 @@ class EsBuilder extends Builder
      */
     public function suggest($query)
     {
-        $suggest=$this->model->suggestAs();
-        if(empty($suggest)){
+        $suggest = $this->model->suggestAs();
+        if (empty($suggest)) {
             throw new \Exception("模型内未配置搜索建议");
         }
-        $suggest_name=$suggest['suggest_name']??"result";
+        $suggest_name = $suggest['suggest_name'] ?? "result";
         $this->suggest =
             [
                 "text" => $query,

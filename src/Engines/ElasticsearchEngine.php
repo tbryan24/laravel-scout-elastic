@@ -200,6 +200,10 @@ class ElasticsearchEngine extends Engine
                 ]
             ];
         }
+        if ($analyze = $this->analyze($builder)) {
+            $params['body'] = $analyze;
+            return $this->elastic->indices()->analyze($params);
+        }
 
         if ($sort = $this->sort($builder)) {
             $params['body']['sort'] = $sort;
@@ -363,10 +367,13 @@ class ElasticsearchEngine extends Engine
      * @param Builder $builder
      * @return array
      */
-    public function analyze(Builder $builder)
+    public function getTokens(Builder $builder)
     {
         try {
             $analyze = $builder->analyze;
+            if (!$analyze){
+                throw new \Exception("解析参数格式不对");
+            }
             $params = [
                 'index' => $builder->model->searchableAs(),
                 'body' => $analyze
@@ -390,6 +397,21 @@ class ElasticsearchEngine extends Engine
         }
 
         return $tokens;
+    }
+
+    /**
+     * Notes: Generates the analyze if theres any.
+     * Author: wangchengfei
+     * DataTime: 2022/4/13 16:35
+     * @param $builder
+     * @return null
+     */
+    protected function analyze($builder){
+        if (is_array($builder->analyze)&&count($builder->analyze) == 0) {
+            return null;
+        }
+
+        return $builder->analyze;
     }
 
     /**

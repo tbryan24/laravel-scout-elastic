@@ -22,8 +22,7 @@ trait EsSearchable
             'model' => new static,
             'query' => $query,
             'callback' => $callback,
-            'softDelete'=> static::usesSoftDelete() && config('scout.soft_delete', false),
-            'analyze' => $query,
+            'softDelete'=> static::usesSoftDelete() && config('scout.soft_delete', false)
         ]);
     }
 
