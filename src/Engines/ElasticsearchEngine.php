@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Collection;
 use Laravel\Scout\Builder;
 use Laravel\Scout\Engines\Engine;
 
+use function PHPUnit\Framework\isNull;
+
 class ElasticsearchEngine extends Engine
 {
     /**
@@ -28,6 +30,15 @@ class ElasticsearchEngine extends Engine
         $this->elastic = $elastic;
     }
 
+    /**
+     * Notes:通过惰性集合将给定结果映射到给定模型的实例
+     * Author: wangchengfei
+     * DataTime: 2022/4/13 10:22
+     * @param Builder $builder
+     * @param mixed $results
+     * @param \Illuminate\Database\Eloquent\Model $model
+     * @return Collection|\Illuminate\Support\Collection|\Illuminate\Support\LazyCollection
+     */
     public function lazyMap(Builder $builder, $results, $model)
     {
         return Collection::make($results['hits']['hits'])->map(
@@ -169,6 +180,7 @@ class ElasticsearchEngine extends Engine
      */
     protected function performSearch(Builder $builder, array $options = [])
     {
+        $callback=$builder->callback;
         if (is_array($builder->query)) {
             $body = $builder->query;
             $params = [
@@ -200,6 +212,11 @@ class ElasticsearchEngine extends Engine
         if (isset($options['size'])) {
             $params['body']['size'] = $options['size'];
         }
+        if ($suggest = $this->suggest($builder)) {
+            $params['body']['suggest'] = $suggest;
+            unset($params['body']['query']);
+            return $this->elastic->search($params);
+        }
 
         if (isset($options['numericFilters']) && count($options['numericFilters'])) {
             $params['body']['query']['bool']['must'] = array_merge(
@@ -230,22 +247,6 @@ class ElasticsearchEngine extends Engine
                 $params['body']['highlight']['fields'][$attribute] = new \stdClass();
             }
         }
-
-        if (isset($options['from'])) {
-            $params['body']['from'] = $options['from'];
-        }
-
-        if (isset($options['size'])) {
-            $params['body']['size'] = $options['size'];
-        }
-
-        if (isset($options['numericFilters']) && count($options['numericFilters'])) {
-            $params['body']['query']['bool']['must'] = array_merge(
-                $params['body']['query']['bool']['must'],
-                $options['numericFilters']
-            );
-        }
-
         return $this->elastic->search($params);
     }
 
@@ -371,17 +372,38 @@ class ElasticsearchEngine extends Engine
                 'body' => $analyze
             ];
             $res = $this->elastic->indices()->analyze($params);
-            foreach ($res['tokens'] as $v) {
-                $offset = $v['end_offset'] - $v['start_offset'];
-                //过滤掉单个汉字或者字母
-                if ($offset > 1) {
-                    $data[] = $v['token'];
+            $tokens = Collection::make($res['tokens'])->map(
+                function ($items) {
+                    $offset = $items['end_offset'] - $items['start_offset'];
+                    //过滤掉单个汉字或者字母
+                    if ($offset > 1) {
+                        return $items['token'];
+                    }
                 }
-            }
-            //$data=array_merge(array_unique($data));
-        }catch (\Exception $exception){
+            )->reject(
+                function ($item) {
+                    return is_null($item);
+                }
+            )->unique()->values();
+        } catch (\Exception $exception) {
             throw new \Exception($exception->getMessage());
         }
-        return $data;
+
+        return $tokens;
+    }
+
+    /**
+     * Notes: Generates the suggest if theres any.
+     * Author: wangchengfei
+     * DataTime: 2022/4/13 16:04
+     * @param $builder
+     * @return null
+     */
+    protected function suggest($builder){
+        if (count($builder->suggest) == 0) {
+            return null;
+        }
+
+        return $builder->suggest;
     }
 }

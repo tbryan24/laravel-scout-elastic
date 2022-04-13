@@ -26,4 +26,9 @@ trait EsSearchable
             'analyze' => $query,
         ]);
     }
+
+    public function suggestAs()
+    {
+        return [];
+    }
 }
