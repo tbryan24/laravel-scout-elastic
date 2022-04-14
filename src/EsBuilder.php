@@ -3,17 +3,19 @@
 namespace Tbryan24\LaravelScoutElastic;
 
 
+use Illuminate\Support\Collection;
 use Laravel\Scout\Builder;
 
 class EsBuilder extends Builder
 {
-    public $analyze;
+    public $analyze;//分词解析
 
-    public $suggest = [];
+    public $suggest = [];//搜索建议
+
+    public $highLight = [];//高亮
 
     public function __construct($model, $query, $callback = null, $softDelete = false, $analyze = null)
     {
-        $this->analyze = $analyze;
         parent::__construct($model, $query, $callback, $softDelete);
     }
 
@@ -37,7 +39,7 @@ class EsBuilder extends Builder
      * @return $this
      * @throws \Exception
      */
-    public function analyze($text='',$analyzer='ik_smart')
+    public function analyze($text = '', $analyzer = 'ik_smart')
     {
         try {
             $this->analyze = [
@@ -72,12 +74,42 @@ class EsBuilder extends Builder
                 $suggest_name => [
                     "completion" => [
                         "field" => $suggest['field'],
-                        "size" => $suggest['size']
+                        "size" => $suggest['size'],
+                        "skip_duplicates" => true,//过滤掉重复结果
                     ]
                 ]
 
             ];
 
+        return $this;
+    }
+
+    /**
+     * Notes: 高亮功能
+     * Author: wangchengfei
+     * DataTime: 2022/4/14 10:12
+     * @param array $columns
+     * @param string $pre_tags
+     * @param string $post_tags
+     * @throws \Laravel\Octane\Exceptions\DdException
+     */
+    public function highLight($columns = [], $pre_tags = "<em style='color:red'>", $post_tags = "</em>")
+    {
+        $fields = Collection::make($columns)->map(
+            function ($items) {
+                return [$items => new \stdClass()];
+            }
+        )->flatMap(
+            function ($values) {
+                return $values;
+            }
+        )->all();
+        $highlight = [
+            "fields" => $fields,
+            'pre_tags' => [$pre_tags],
+            'post_tags' => [$post_tags]
+        ];
+        $this->highLight = $highlight;
         return $this;
     }
 }

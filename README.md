@@ -21,3 +21,9 @@ LifeMomentsSearchKeywords::search()->analyze($keywords)->raw();
 ```php
 LifeMomentsSearchKeywords::search()->suggest($keywords)->raw();
 ```
+
+## 高亮的用法
+
+```php
+LifeMomentsPost::search($keywords)->highLight(["title","content"],"<p style='color:red'>","</p>")->raw();
+```

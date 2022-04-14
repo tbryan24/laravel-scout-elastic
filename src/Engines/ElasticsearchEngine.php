@@ -209,6 +209,10 @@ class ElasticsearchEngine extends Engine
             $params['body']['sort'] = $sort;
         }
 
+        if ($highlight = $this->highLight($builder)) {
+            $params['body']['highlight'] = $highlight;
+        }
+
         if (isset($options['from'])) {
             $params['body']['from'] = $options['from'];
         }
@@ -238,19 +242,6 @@ class ElasticsearchEngine extends Engine
             );
         }
 
-        /**
-         * 这里使用了 highlight 的配置
-         */
-        if ($builder->model->searchSettings
-            && isset($builder->model->searchSettings['attributesToHighlight'])
-        ) {
-            $attributes = $builder->model->searchSettings['attributesToHighlight'];
-            foreach ($attributes as $attribute) {
-                $params['body']['highlight']['pre_tags'] = ["<em style='color:red'>"];
-                $params['body']['highlight']['post_tags'] = ["</em>"];
-                $params['body']['highlight']['fields'][$attribute] = new \stdClass();
-            }
-        }
         return $this->elastic->search($params);
     }
 
@@ -422,10 +413,25 @@ class ElasticsearchEngine extends Engine
      * @return null
      */
     protected function suggest($builder){
-        if (count($builder->suggest) == 0) {
+        if (!$builder->suggest||count($builder->suggest) == 0) {
             return null;
         }
 
         return $builder->suggest;
+    }
+
+    /**
+     * Notes: Generates the highLight if theres any.
+     * Author: wangchengfei
+     * DataTime: 2022/4/14 10:17
+     * @param $builder
+     * @return null
+     */
+    public function highLight($builder){
+        if (!$builder->highLight||count($builder->highLight) == 0) {
+            return null;
+        }
+
+        return $builder->highLight;
     }
 }
