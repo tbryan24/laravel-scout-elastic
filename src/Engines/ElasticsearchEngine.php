@@ -434,4 +434,28 @@ class ElasticsearchEngine extends Engine
 
         return $builder->highLight;
     }
+
+    /**
+     * Notes: 创建索引
+     * Author: wangchengfei
+     * DataTime: 2022/4/15 18:22
+     * @param $builder
+     * @throws \Laravel\Octane\Exceptions\DdException
+     */
+    public function createIndexNew($builder){
+        try {
+            $params = [
+                'index' => $builder->model->searchableAs(),
+            ];
+            $body=$builder->body;
+            if ($body) {
+                $params['body']=$body;
+            }
+
+            $this->elastic->indices()->create($params);
+        }catch (\Exception $exception){
+            throw new \Exception($exception->getMessage());
+        }
+
+    }
 }

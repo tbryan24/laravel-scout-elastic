@@ -5,9 +5,12 @@ namespace Tbryan24\LaravelScoutElastic;
 
 use Illuminate\Support\Collection;
 use Laravel\Scout\Builder;
+use Tbryan24\LaravelScoutElastic\Trait\IndexSetting;
 
 class EsBuilder extends Builder
 {
+    use IndexSetting;
+
     public $analyze;//分词解析
 
     public $suggest = [];//搜索建议

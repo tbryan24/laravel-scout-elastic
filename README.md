@@ -40,7 +40,7 @@ composer require tbryan24/laravel-scout-elastic
 Tbryan24\LaravelScoutElastic\ElasticScoutProvider::class
 ```
 
-## 3、模型配置可搜索
+### 3、模型配置可搜索
 
 在搜索的模型中添加`Tbryan24\LaravelScoutElastic\EsSearchable`  该trait继承的是`Laravel\Scout\Searchable` 。这个 trait 会注册一个模型观察者来保持模型和所有驱动的同步：
 

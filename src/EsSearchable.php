@@ -4,6 +4,7 @@ namespace Tbryan24\LaravelScoutElastic;
 
 
 use Laravel\Scout\Searchable;
+use Tbryan24\LaravelScoutElastic\Trait\IndexSetting;
 
 trait EsSearchable
 {
