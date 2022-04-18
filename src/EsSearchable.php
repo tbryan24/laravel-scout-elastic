@@ -31,4 +31,8 @@ trait EsSearchable
     {
         return [];
     }
+
+    public function esBody(){
+        return [];
+    }
 }

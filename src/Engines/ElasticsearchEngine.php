@@ -86,6 +86,9 @@ class ElasticsearchEngine extends Engine
 
         $models->each(
             function ($model) use (&$params) {
+                if(!empty($model->esBody())){
+                    $this->updateAddIndex($model);
+                }
                 $params['body'][] = [
                     'update' => [
                         '_id' => $model->getScoutKey(),
@@ -436,11 +439,38 @@ class ElasticsearchEngine extends Engine
     }
 
     /**
-     * Notes: 创建索引
+     * Notes: 创建数据时如果没有该索且model里配置了索引相关信息则先按配置创建索引再插入数据
      * Author: wangchengfei
      * DataTime: 2022/4/15 18:22
      * @param $builder
      * @throws \Laravel\Octane\Exceptions\DdException
+     */
+    public function updateAddIndex($model){
+        try {
+            if ($this->elastic->indices()->exists(["index"=>$model->searchableAs()])){//判断索引是否存在
+                return [];
+            }
+            $params = [
+                'index' => $model->searchableAs(),
+            ];
+            $body=$model->esBody();
+            if ($body) {
+                $params['body']=$body;
+            }
+
+            $this->elastic->indices()->create($params);
+        }catch (\Exception $exception){
+            throw new \Exception($exception->getMessage());
+        }
+
+    }
+
+    /**
+     * Notes: 链式方式手动创建索引
+     * Author: wangchengfei
+     * DataTime: 2022/4/18 11:50
+     * @param $builder
+     * @throws \Exception
      */
     public function createIndexNew($builder){
         try {
