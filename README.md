@@ -6,10 +6,10 @@
 
 安装前需要提前安装官方scout扩展https://learnku.com/docs/laravel/8.x/scout/9422和elasticsearch的php扩展，具体的scout配置说明见官方文档
 
-首先安装php elasticsearch扩展包
+首先安装php elasticsearch扩展包(用7的包)
 
 ```php
-composer require elasticsearch/elasticsearch
+composer require elasticsearch/elasticsearch:v7.*
 ```
 
 然后，安装laravel官方 Scout扩展：
@@ -21,10 +21,6 @@ composer require laravel/scout
 Scout 安装完成后，使用 vendor:publish Artisan 命令来生成 Scout 配置文件。这个命令将在你的 config 目录下生成一个 scout.php 配置文件。
 
 php artisan vendor:publish --provider="Laravel\Scout\ScoutServiceProvider"
-
-```php
-composer require elasticsearch/elasticsearch
-```
 
 然后安装：
 
@@ -145,7 +141,69 @@ class LifeMomentsPost extends Model
 
 
 
-### 6、当然你还可以在模型中自定义查询结构
+## 6、配置创建索引时的一些特殊设置
+
+scout在模型插入数据时会调用searchable中的update方法向es中同步数据，如果索引不存在则会创建相应索引，但是系统创建索引都是一些基本类型，有时候并不能满足我们的需求，比如我们要设置分词器或者特殊过滤规则，此时我们就要指定索引创建时的setting或者mapping
+
+如下：在模型里加入esBody方法，设置你需要es为你特殊设置的一些配置
+
+```php
+public function esBody()
+{
+    $body = [
+        "settings" => [
+            'number_of_shards' => 5,//主分片
+            'number_of_replicas' => 2,//副本分片
+            "analysis" => [
+                "analyzer" => [//构造自己的拼音分析器
+                    "pinyin_analyzer" => [
+                        "tokenizer" => "my_pinyin"
+                    ]
+                ],
+                "tokenizer" => [
+                    "my_pinyin" => [
+                        "type" => "pinyin",
+                        "keep_first_letter" => true,
+                        "keep_separate_first_letter" => true,
+                        "keep_full_pinyin" => true,
+                        "keep_original" => true,
+                        "limit_first_letter_length" => 16,
+                        "lowercase" => true
+                    ]
+                ]
+            ]
+        ],
+        "mappings" => [
+            '_source' => [
+                'enabled' => true
+            ],
+            "properties" => [
+                "nickname" => [
+                    "type" => "text",
+                    "analyzer" => "ik_max_word",
+                    "fields" => [
+                        "s-pinyin" => [
+                            "type" => "text",
+                            "analyzer" => "pinyin_analyzer"//nickname.s-pinyin字段使用上面定义的拼音分析器
+                        ]
+                    ]
+                ]
+            ]
+        ]
+    ];
+    return $body;
+}
+```
+
+另外，你也可以自己手动逻辑实现索引创建
+
+```php
+$res = LifeMomentsAccount::search()->createIndex($body);
+```
+
+
+
+### 7、当然你还可以在模型中自定义查询结构
 
 正常情况下search方法传入的是你的搜索关键词（字符串），为了实现更多功能你可以采用该方式传入构造好的body数组，该方式比较灵活，你可以基于es原生构造所有你希望实现的查询，比如你要嵌套多层bool来实现复杂的过滤需求，模型中新增方法getSearchBody用于构造查询的body（暂定方式）
 
@@ -233,6 +291,17 @@ LifeMomentsSearchKeywords::search()->analyze($keywords)->raw();
 ```
 
 ## 搜索建议用法
+
+必须在模型中配置suggestAs，不然会提示==模型内未配置搜索建议==
+
+```php
+public function suggestAs()
+{
+	return ["field" => "keywords.s-pinyin", "size" => 10,'suggest_name'=>'keywords-suggest'];
+}
+```
+
+查询使用
 
 ```php
 LifeMomentsSearchKeywords::search()->suggest($keywords)->raw();
