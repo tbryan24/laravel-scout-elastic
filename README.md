@@ -1,6 +1,6 @@
-# laravel-scout-elastic
+# laravel-scout-elastic（适用于中文搜索的scout扩展包）
 
-基于https://github.com/ErickTamayo/laravel-scout-elastic 改造适用于中文搜索的scout扩展包
+基于https://github.com/ErickTamayo/laravel-scout-elastic 改造
 
 ### 1、composer安装
 
